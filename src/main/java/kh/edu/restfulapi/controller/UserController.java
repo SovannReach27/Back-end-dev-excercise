@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
+
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
@@ -34,4 +36,9 @@ public void deleteById(@PathVariable UUID id){
     public List<UserResponse> getAll(){
         return userService.getAll();
     }
+
+    public UserResponse getById(@PathVariable UUID id){
+        return userService.getById(id);
+    }
+
 }

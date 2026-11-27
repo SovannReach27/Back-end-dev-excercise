@@ -7,6 +7,7 @@ import kh.edu.restfulapi.model.User;
 import kh.edu.restfulapi.repositiory.UserRepository;
 import kh.edu.restfulapi.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -16,55 +17,45 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
 
+//    private final UserRepository userRepository;
+
     @Override
     public void deleteById(UUID id) {
-        if (!userRepository.checkById(id)){
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,"User Not Found  "
-            );
         }
-
-        userRepository.deleteOne(id);
-    }
-
 
     @Override
     public UserResponse create(UserCreateRequest userCreateRequest){
         User user = new User();
+        user.setFullname(userCreateRequest.fullname());
         user.setUsername(userCreateRequest.username());
         user.setPassword(userCreateRequest.password());
-        user.setFullname(userCreateRequest.fullname());
-
-        //
-        user.setId(UUID.randomUUID());
         user.setIsActive(true);
 
-        //
-        userRepository.insertOne(user);
+        User savedUser = userRepository.save(user);
+        log.info("After saving user: {}", user.getId());
 
-        //
-
-        return new UserResponse(
-                user.getId(),
-                user.getFullname(),
-                user.getIsActive()
-        );
+        return UserResponse.builder()
+                .id(savedUser.getId())
+                .fullname(savedUser.getFullname())
+                .isActive(savedUser.getIsActive())
+                .build();
     }
 
 
     @Override
     public List<UserResponse> getAll() {
-
-        return userRepository.selectALl()
+        return userRepository.findAll()
                 .stream()
-                .map(user -> new UserResponse(
-                        user.getId(),
-                        user.getFullname(),
-                        user.getIsActive()))
+                .map(user -> UserResponse.builder()
+                        .id(user.getId())
+                        .fullname(user.getFullname())
+                        .isActive(user.getIsActive())
+                        .build())
                 .toList();
     }
 
@@ -73,4 +64,15 @@ public class UserServiceImpl implements UserService {
         return null;
     }
 
+
+    @Override
+    public UserResponse getById(UUID id) {
+        return userRepository.findById(id)
+                .map(user -> UserResponse.builder()
+                        .id(user.getId())
+                        .fullname(user.getFullname())
+                        .isActive(user.getIsActive())
+                        .build())
+                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,"Resource not found"));
+    }
 }

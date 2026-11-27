@@ -16,4 +16,6 @@ public interface UserService {
     List<UserResponse> getAll();
 
     User getByid(UUID id);
+
+    UserResponse getById(UUID id);
 }
